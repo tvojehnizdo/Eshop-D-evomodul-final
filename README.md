@@ -1,3 +1,3 @@
-# Drevomodul.cz – finální obrázky pro e-shop
+# Drevomodul E-shop
 
-Tato složka obsahuje všechny vizualizace modulů, stavebnic a příslušenství.
+Kompletní funkční verze včetně HTML, CSS a obrázků.
