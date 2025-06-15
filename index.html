@@ -1,45 +1,104 @@
+
 <!DOCTYPE html>
 <html lang="cs">
 <head>
   <meta charset="UTF-8">
-  <title>Drevomodul.cz | Drevomodul.cz</title>
-  <link rel="stylesheet" href="css/style.css">
+  <title>Konfigurátor | Drevomodul.cz</title>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  <style>
+    body { font-family: sans-serif; background: #f8f8f8; padding: 20px; color: #333; }
+    .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    label, select, input, textarea { display: block; width: 100%; margin-bottom: 15px; padding: 8px; }
+    button { background: #00695c; color: white; padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    h1 { text-align: center; color: #00695c; }
+    .result { margin-top: 20px; font-size: 18px; font-weight: bold; color: #00796b; }
+  </style>
 </head>
 <body>
-  <header>
-    <h1>Drevomodul.cz</h1>
-    <nav>
-      <a href="index.html">Domů</a>
-      <a href="domy.html">Modulové domy</a>
-      <a href="stavebnice.html">Stavebnice</a>
-      <a href="prislusenstvi.html">Příslušenství</a>
-      <a href="#">Konfigurátor</a>
-    </nav>
-  </header>
-  <main>
-    
-    <div class="box">
-      <h2>Modulové domy</h2>
-      <img src="img/modul-mini.jpg" alt="Modul Mini">
-      <p>Moderní domy do 25 m² bez povolení. Rychlá montáž, dostupná cena.</p>
-      <a class="button" href="domy.html">Zobrazit nabídku</a>
-    </div>
-    <div class="box">
-      <h2>Stavebnice</h2>
-      <img src="img/stavebnice-basic.jpg" alt="Stavebnice Basic">
-      <p>Postav si dům svépomocí. Tři úrovně vybavení: Basic, Plus, Extra.</p>
-      <a class="button" href="stavebnice.html">Prohlédnout stavebnice</a>
-    </div>
-    <div class="box">
-      <h2>Příslušenství</h2>
-      <img src="img/okno.jpg" alt="Okno">
-      <p>Okna, izolace, montážní pomůcky. Vše skladem k dodání.</p>
-      <a class="button" href="prislusenstvi.html">Více o příslušenství</a>
-    </div>
-    
-  </main>
-  <footer>
-    <p>&copy; 2025 Drevomodul.cz</p>
-  </footer>
+  <div class="container">
+    <h1>Konfigurátor Drevomodul.cz</h1>
+    <form id="configForm">
+      <label for="typ">Typ:</label>
+      <select id="typ" required>
+        <option value="Modulový dům">Modulový dům</option>
+        <option value="Stavebnice">Stavebnice</option>
+      </select>
+
+      <label for="varianta">Varianta:</label>
+      <select id="varianta" required>
+        <option value="Mini / Basic">Mini / Basic – 250 000 Kč</option>
+        <option value="Start / Plus">Start / Plus – 400 000 Kč</option>
+        <option value="Family / Extra">Family / Extra – 650 000 Kč</option>
+      </select>
+
+      <label><input type="checkbox" id="prislusenstvi"> Přidat příslušenství (+50 000 Kč)</label>
+      <label><input type="checkbox" id="doprava"> Doprava a montáž (+30 000 Kč)</label>
+
+      <hr>
+
+      <label for="jmeno">Jméno a příjmení:</label>
+      <input type="text" id="jmeno" required>
+
+      <label for="email">E-mail:</label>
+      <input type="email" id="email" required>
+
+      <label for="poznamka">Poznámka:</label>
+      <textarea id="poznamka" rows="4"></textarea>
+
+      <button type="submit">Odeslat poptávku a stáhnout PDF</button>
+    </form>
+
+    <div class="result" id="vysledek"></div>
+  </div>
+
+  <script>
+    emailjs.init("-nD0IyPXpX-fte3LX");
+
+    document.getElementById("configForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      let cena = 0;
+      const typ = document.getElementById("typ").value;
+      const varianta = document.getElementById("varianta").value;
+      if (varianta.includes("Mini")) cena = 250000;
+      else if (varianta.includes("Start")) cena = 400000;
+      else if (varianta.includes("Family")) cena = 650000;
+      if (document.getElementById("prislusenstvi").checked) cena += 50000;
+      if (document.getElementById("doprava").checked) cena += 30000;
+
+      const jmeno = document.getElementById("jmeno").value;
+      const email = document.getElementById("email").value;
+      const poznamka = document.getElementById("poznamka").value;
+
+      const data = {
+        typ: typ,
+        varianta: varianta,
+        cena: cena + " Kč",
+        jmeno: jmeno,
+        email: email,
+        poznamka: poznamka
+      };
+
+      try {
+        await emailjs.send("service_8qzuvjj", "template_ehonwrj", data);
+        document.getElementById("vysledek").innerText = "Poptávka byla odeslána. PDF se stahuje...";
+      } catch (err) {
+        document.getElementById("vysledek").innerText = "Nepodařilo se odeslat e-mail.";
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.text("Rekapitulace poptávky – Drevomodul.cz", 10, 10);
+      doc.text(`Typ: ${typ}`, 10, 20);
+      doc.text(`Varianta: ${varianta}`, 10, 30);
+      doc.text(`Cena: ${cena.toLocaleString("cs-CZ")} Kč`, 10, 40);
+      doc.text(`Jméno: ${jmeno}`, 10, 50);
+      doc.text(`E-mail: ${email}`, 10, 60);
+      doc.text(`Poznámka: ${poznamka || "-"}`, 10, 70);
+      doc.save("poptavka_drevomodul.pdf");
+    });
+  </script>
 </body>
 </html>
