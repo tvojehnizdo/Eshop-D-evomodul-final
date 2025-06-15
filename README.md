@@ -1,3 +1,3 @@
-# Drevomodul-e-shop
+# Drevomodul.cz – finální obrázky pro e-shop
 
-Oficiální e-shop pro prodej modulových domů a stavebnic na GitHub Pages.
+Tato složka obsahuje všechny vizualizace modulů, stavebnic a příslušenství.
